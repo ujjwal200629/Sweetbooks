@@ -28,7 +28,7 @@ cd backend
 npm install
 npx prisma generate
 npx prisma db push
-npm run seed     # Warning: Clears DB and inserts 6-months of demo data!
+npm run seed     # Warning: Clears DB and inserts demo data!
 npm run dev
 ```
 
@@ -47,12 +47,13 @@ npm run dev
 
 ## ☁️ Production Deployment
 
-Sweetbook is designed to be deployed across three services:
-1. **Frontend**: Vercel (SPA)
-2. **Backend**: Render (Node.js/Express)
-3. **Database**: Supabase (PostgreSQL)
+Sweetbook is designed to be deployed completely free across three services without requiring a credit card:
+1. **Source Control**: GitHub (Triggers Automatic Deployments)
+2. **Frontend**: Vercel (SPA)
+3. **Backend**: Koyeb (Node.js/Express)
+4. **Database**: Supabase (PostgreSQL)
 
-For detailed deployment instructions, including how to set up `vercel.json` and `render.yaml`, please refer to the [Deployment Guide](docs/DEPLOYMENT.md).
+For detailed step-by-step deployment instructions, please refer to the [Deployment Guide](docs/DEPLOYMENT.md).
 
 ## 🛠️ Common Errors & Troubleshooting
 

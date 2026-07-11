@@ -86,21 +86,24 @@ async function main() {
     dbProducts.push(prod);
   }
 
-  // 5. CUSTOMERS (Realistic Indian Names)
-  console.log("👥 Creating customers...");
-  const customerNames = [
-    "Aarav Sharma", "Priya Patel", "Rohan Singh", "Sneha Gupta", "Vikram Verma",
-    "Ananya Iyer", "Rahul Desai", "Neha Reddy", "Amit Kumar", "Pooja Joshi",
-    "Karan Malhotra", "Meera Nair", "Siddharth Das", "Kavya Menon", "Aditya Bose",
-    "Riya Kapoor", "Arjun Mehta", "Nisha Jain", "Kabir Bhatia", "Aisha Khan"
-  ];
+  // 5. CUSTOMERS (Realistic Indian Names, 100+)
+  console.log("👥 Creating 100+ customers...");
+  const firstNames = ["Aarav", "Priya", "Rohan", "Sneha", "Vikram", "Ananya", "Rahul", "Neha", "Amit", "Pooja", "Karan", "Meera", "Siddharth", "Kavya", "Aditya", "Riya", "Arjun", "Nisha", "Kabir", "Aisha", "Dhruv", "Ishita", "Yash", "Kriti", "Ravi"];
+  const lastNames = ["Sharma", "Patel", "Singh", "Gupta", "Verma", "Iyer", "Desai", "Reddy", "Kumar", "Joshi", "Malhotra", "Nair", "Das", "Menon", "Bose", "Kapoor", "Mehta", "Jain", "Bhatia", "Khan"];
+  
+  const customerNames = [];
+  for (let i = 0; i < 110; i++) {
+    const fName = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const lName = lastNames[Math.floor(Math.random() * lastNames.length)];
+    customerNames.push(`${fName} ${lName}`);
+  }
   
   const dbCustomers: any[] = [];
   for (let i = 0; i < customerNames.length; i++) {
     const cust = await prisma.customer.create({
       data: {
         name: customerNames[i],
-        phone: `987654${String(i).padStart(4, '0')}`,
+        phone: `98${String(i).padStart(8, '0')}`,
         createdAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000), // Created 6 months ago
       }
     });
@@ -114,8 +117,8 @@ async function main() {
   const now = new Date();
   const sixMonthsAgo = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
   
-  // Total ~800 invoices over 180 days
-  for (let i = 0; i < 800; i++) {
+  // Total ~550 invoices over 180 days
+  for (let i = 0; i < 550; i++) {
     // Generate random date between 6 months ago and now, heavily weighted towards weekends
     const randomDaysOff = Math.floor(Math.random() * 180);
     const invoiceDate = new Date(sixMonthsAgo.getTime() + randomDaysOff * 24 * 60 * 60 * 1000);

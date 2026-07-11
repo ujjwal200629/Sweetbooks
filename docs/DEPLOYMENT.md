@@ -1,30 +1,48 @@
 # Deployment Guide
 
-This guide describes how to deploy the Sweetbook ecosystem to production using **Vercel** (Frontend), **Render** (Backend), and **Supabase** (PostgreSQL Database).
+This guide describes how to deploy the Sweetbook ecosystem to production completely free using **GitHub**, **Vercel** (Frontend), **Koyeb** (Backend), and **Supabase** (PostgreSQL Database).
 
-## 1. Database Setup (Supabase)
+## 1. Source Control (GitHub)
+All deployments are triggered automatically when you push to the `main` branch of your GitHub repository.
+1. Create a repository on GitHub.
+2. Push the source code:
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/your-username/Sweetbooks.git
+git push -u origin main
+```
+
+## 2. Database Setup (Supabase)
 1. Log in to [Supabase](https://supabase.com/).
 2. Create a new Project.
-3. Once the database provisions, navigate to **Project Settings > Database**.
+3. Navigate to **Project Settings > Database**.
 4. Copy the **Transaction Connection String**.
 5. Replace `[YOUR-PASSWORD]` with your actual password.
    *Example:* `postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres?pgbouncer=true`
 
-## 2. Backend Deployment (Render)
-Render uses Infrastructure as Code via the `render.yaml` file located in the `/backend` directory.
+## 3. Backend Deployment (Koyeb)
+Koyeb provides a free tier for Node.js applications and seamlessly integrates with GitHub.
 
 ### Steps:
-1. Push your repository to GitHub.
-2. Go to [Render Dashboard](https://dashboard.render.com/) and click **New > Blueprint**.
-3. Connect your GitHub repository.
-4. Render will automatically detect the `render.yaml` file.
-5. Provide the necessary Environment Variables when prompted:
+1. Log in to [Koyeb](https://app.koyeb.com/).
+2. Click **Create Web Service**.
+3. Select **GitHub** and choose your `Sweetbooks` repository.
+4. Set the **Branch** to `main` and **Work directory** to `backend`.
+5. Under **Builder**, select **Buildpack**.
+   - **Build command**: `npm install && npm run build` (This automatically runs `prisma generate && tsc` as configured in `package.json`).
+   - **Run command**: `npm start`
+6. Under **Environment variables**, add:
    - `DATABASE_URL`: (Paste the Supabase connection string)
    - `JWT_SECRET`: (Generate a secure random string)
+   - `NODE_ENV`: `production`
    - `FRONTEND_URL`: (Will be populated after Vercel deployment)
-6. Click **Apply**. Render will automatically run `npm install`, `npx prisma generate`, `npm run build`, and `npm start`.
+7. Click **Deploy**. Koyeb will build and host the application.
+8. Copy the Koyeb Public URL (e.g., `https://sweetbook-api.koyeb.app`).
 
-## 3. Frontend Deployment (Vercel)
+## 4. Frontend Deployment (Vercel)
 Vercel automatically detects Vite configurations and SPA routing using the `vercel.json` file.
 
 ### Steps:
@@ -32,17 +50,17 @@ Vercel automatically detects Vite configurations and SPA routing using the `verc
 2. Connect your GitHub repository.
 3. Select the `frontend` directory as the Root Directory.
 4. Set the Environment Variables:
-   - `VITE_API_URL`: The URL of your Render backend deployment (e.g., `https://sweetbook-backend.onrender.com/api`).
+   - `VITE_API_URL`: The URL of your Koyeb backend deployment (e.g., `https://sweetbook-api.koyeb.app/api`).
 5. Click **Deploy**. Vercel will build and host the application.
 
-## 4. Finalizing the Connection
+## 5. Finalizing the Connection
 Once Vercel has generated your frontend URL:
-1. Go back to Render Dashboard.
+1. Go back to Koyeb Dashboard.
 2. Edit the Environment Variables for the Web Service.
-3. Update `FRONTEND_URL` to match your Vercel domain (e.g., `https://sweetbook.vercel.app`).
-4. Restart the Render server to enforce CORS policy.
+3. Update `FRONTEND_URL` to match your Vercel domain (e.g., `https://sweetbooks.vercel.app`).
+4. Koyeb will automatically redeploy with the updated CORS policy.
 
-## 5. Migrations & Seeding in Production
+## 6. Migrations & Seeding in Production
 To apply database schemas to Supabase, you must run migrations locally against the production URL:
 ```bash
 cd backend
