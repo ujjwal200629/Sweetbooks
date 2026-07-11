@@ -10,7 +10,9 @@ const port = process.env.PORT || 5000;
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL : "*"
+}));
 app.use(express.json());
 
 // Standard API Response Format Type
