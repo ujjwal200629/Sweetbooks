@@ -1,0 +1,228 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("OWNER")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Customer {
+  id                     String               @id @default(uuid())
+  name                   String
+  phone                  String               @unique
+  birthday               DateTime?            @db.Date
+  anniversary            DateTime?            @db.Date
+  totalSpending          Float                @default(0) @map("total_spending")
+  totalVisits            Int                  @default(0) @map("total_visits")
+  averageBill            Float                @default(0) @map("average_bill")
+  favoriteProductId      String?              @map("favorite_product_id")
+  preferredPaymentMethod String?              @map("preferred_payment_method")
+  vipLevel               String               @default("NONE") @map("vip_level")
+  loyaltyPoints          Int                  @default(0) @map("loyalty_points")
+  createdAt              DateTime             @default(now()) @map("created_at")
+  updatedAt              DateTime             @updatedAt @map("updated_at")
+  notes                  CustomerNote[]
+  invoices               Invoice[]
+  advanceOrders          AdvanceOrder[]
+  loyaltyTransactions    LoyaltyTransaction[]
+
+  @@index([phone])
+  @@index([vipLevel])
+  @@map("customers")
+}
+
+model CustomerNote {
+  id         String   @id @default(uuid())
+  customerId String   @map("customer_id")
+  note       String
+  createdBy  String   @map("created_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  @@map("customer_notes")
+}
+
+model Product {
+  id             String                @id @default(uuid())
+  name           String
+  category       String
+  unit           String
+  price          Float
+  gst            Float
+  stock          Float                 @default(0)
+  minimumStock   Float                 @default(0) @map("minimum_stock")
+  status         String                @default("ACTIVE")
+  createdAt      DateTime              @default(now()) @map("created_at")
+  updatedAt      DateTime              @updatedAt @map("updated_at")
+  invoiceItems   InvoiceItem[]
+  advanceItems   AdvanceOrderItem[]
+  stockHistory   StockHistory[]
+  priceHistory   ProductPriceHistory[]
+
+  @@index([category])
+  @@index([status])
+  @@map("products")
+}
+
+model ProductPriceHistory {
+  id        String   @id @default(uuid())
+  productId String   @map("product_id")
+  oldPrice  Float    @map("old_price")
+  newPrice  Float    @map("new_price")
+  updatedAt DateTime @default(now()) @map("updated_at")
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@map("product_price_history")
+}
+
+model StockHistory {
+  id         String   @id @default(uuid())
+  productId  String   @map("product_id")
+  changeType String   @map("change_type")
+  quantity   Float
+  reason     String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  product    Product  @relation(fields: [productId], references: [id])
+
+  @@map("stock_history")
+}
+
+model Invoice {
+  id                String               @id @default(uuid())
+  invoiceNumber     String               @unique @map("invoice_number")
+  customerId        String?              @map("customer_id")
+  billingType       String               @map("billing_type")
+  subtotal          Float
+  discount          Float                @default(0)
+  gst               Float
+  additionalCharges Float                @default(0) @map("additional_charges")
+  grandTotal        Float                @map("grand_total")
+  paymentMethod     String               @map("payment_method")
+  status            String               @default("COMPLETED")
+  notes             String?
+  createdAt         DateTime             @default(now()) @map("created_at")
+  customer          Customer?            @relation(fields: [customerId], references: [id])
+  items             InvoiceItem[]
+  loyaltyTransaction LoyaltyTransaction?
+
+  @@index([invoiceNumber])
+  @@index([customerId])
+  @@index([createdAt])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id        String  @id @default(uuid())
+  invoiceId String  @map("invoice_id")
+  productId String  @map("product_id")
+  quantity  Float
+  price     Float
+  gst       Float
+  discount  Float   @default(0)
+  total     Float
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@map("invoice_items")
+}
+
+model AdvanceOrder {
+  id                  String             @id @default(uuid())
+  customerId          String             @map("customer_id")
+  pickupDate          DateTime           @db.Date @map("pickup_date")
+  pickupTime          String             @map("pickup_time")
+  occasion            String?
+  advancePaid         Float              @map("advance_paid")
+  remainingAmount     Float              @map("remaining_amount")
+  specialInstructions String?            @map("special_instructions")
+  status              String             @default("PENDING")
+  createdAt           DateTime           @default(now()) @map("created_at")
+  customer            Customer           @relation(fields: [customerId], references: [id])
+  items               AdvanceOrderItem[]
+
+  @@map("advance_orders")
+}
+
+model AdvanceOrderItem {
+  id             String       @id @default(uuid())
+  advanceOrderId String       @map("advance_order_id")
+  productId      String       @map("product_id")
+  quantity       Float
+  price          Float
+  advanceOrder   AdvanceOrder @relation(fields: [advanceOrderId], references: [id])
+  product        Product      @relation(fields: [productId], references: [id])
+
+  @@map("advance_order_items")
+}
+
+model Offer {
+  id            String    @id @default(uuid())
+  title         String
+  offerType     String    @map("offer_type")
+  discountType  String    @map("discount_type")
+  discountValue Float     @map("discount_value")
+  minimumBill   Float     @default(0) @map("minimum_bill")
+  startDate      DateTime  @map("start_date")
+  endDate        DateTime  @map("end_date")
+  status         String    @default("ACTIVE")
+  applicableVips String[]  @default([]) @map("applicable_vips")
+
+  @@map("offers")
+}
+
+model LoyaltyTransaction {
+  id             String   @id @default(uuid())
+  customerId     String   @map("customer_id")
+  invoiceId      String?  @unique @map("invoice_id")
+  pointsEarned   Int      @default(0) @map("points_earned")
+  pointsRedeemed Int      @default(0) @map("points_redeemed")
+  createdAt      DateTime @default(now()) @map("created_at")
+  customer       Customer @relation(fields: [customerId], references: [id])
+  invoice        Invoice? @relation(fields: [invoiceId], references: [id])
+
+  @@map("loyalty_transactions")
+}
+
+model Campaign {
+  id            String    @id @default(uuid())
+  title         String
+  message       String
+  recipientType String    @map("recipient_type")
+  status        String    @default("DRAFT")
+  sentAt        DateTime? @map("sent_at")
+
+  @@map("campaigns")
+}
+
+model Setting {
+  id                 String  @id @default("1")
+  shopName           String  @map("shop_name")
+  logo               String?
+  address            String?
+  gstNumber          String? @map("gst_number")
+  phone              String?
+  invoicePrefix      String  @default("INV-") @map("invoice_prefix")
+  goldSpending       Float   @default(20000) @map("gold_spending")
+  goldVisits         Int     @default(10) @map("gold_visits")
+  platinumSpending   Float   @default(50000) @map("platinum_spending")
+  platinumVisits     Int     @default(20) @map("platinum_visits")
+  diamondSpending    Float   @default(100000) @map("diamond_spending")
+  diamondVisits      Int     @default(40) @map("diamond_visits")
+  pointsPerRupee     Float   @default(1) @map("points_per_rupee")
+  pointsRedemption   Float   @default(0.1) @map("points_redemption")
+
+  @@map("settings")
+}
