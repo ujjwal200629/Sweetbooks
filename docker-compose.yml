@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: sweetbook-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: sweetbook
+    ports:
+      - "5432:5432"
+    volumes:
+      - sweetbook-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    container_name: sweetbook-backend
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/sweetbook?schema=public
+      JWT_SECRET: sweetbook-docker-secret-key-2026
+      PORT: 5000
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: sweetbook-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  sweetbook-pgdata:
