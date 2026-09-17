@@ -34,6 +34,13 @@ echo.
 :: Build and start containers in detached mode
 docker-compose up -d --build
 
+if %errorlevel% neq 0 (
+    echo [ERROR] Docker build failed! Please scroll up to see the error.
+    echo.
+    pause
+    exit /b
+)
+
 echo.
 echo ===================================================
 echo 🎉 Sweetbook is successfully running in the background!
@@ -50,4 +57,7 @@ echo.
 echo [NOTE] To stop the application, you can run "docker-compose down" in this folder,
 echo or use the Docker Desktop dashboard to stop the containers.
 echo ===================================================
+echo Opening your web browser...
+timeout /t 3 >nul
+start http://localhost
 pause
